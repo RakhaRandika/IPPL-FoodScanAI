@@ -1,0 +1,41 @@
+/* Tailwind directives (if Tailwind is configured) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fallback/basic styles so UI looks reasonable if Tailwind isn't processed */
+:root {
+  --bg: #f3faf7;
+  --muted: #6b7280;
+  --card: #ffffff;
+  --primary: #10b981;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(180deg, #f0fbf9 0%, #f7fbff 100%);
+  color: #0f172a;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+  padding: 16px;
+}
+
+.btn {
+  background: var(--primary);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
