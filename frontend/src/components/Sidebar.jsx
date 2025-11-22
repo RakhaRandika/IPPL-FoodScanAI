@@ -9,10 +9,6 @@ export function Sidebar({ isOpen, onClose }) {
       onClick: () =>
         document.querySelector("#root")?.scrollIntoView({ behavior: "smooth" }),
     },
-    {
-      label: "Rekomendasi Resep",
-      onClick: () => alert("Fitur resep belum terhubung"),
-    },
   ];
 
   return (
