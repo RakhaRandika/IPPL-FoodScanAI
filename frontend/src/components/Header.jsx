@@ -18,9 +18,6 @@ export function Header({ onMenuToggle }) {
             <Button variant="ghost" size="icon" onClick={onMenuToggle}>
               <Menu className="size-5" />
             </Button>
-            <Button variant="ghost" size="icon">
-              <User className="size-5" />
-            </Button>
           </div>
         </div>
       </div>

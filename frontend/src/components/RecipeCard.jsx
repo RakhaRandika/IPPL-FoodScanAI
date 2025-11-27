@@ -5,7 +5,7 @@ export function RecipeCard({ recipe }) {
   const [showSteps, setShowSteps] = useState(false);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+    <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow border border-gray-100">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
@@ -23,14 +23,22 @@ export function RecipeCard({ recipe }) {
         </div>
       </div>
 
-      {/* Match Percentage */}
+      {/* Match Info - UPDATED */}
       <div className="mb-3">
         <div className="flex items-center justify-between text-sm mb-1">
-          <span className="text-gray-600">Match Percentage</span>
-          <span className="font-semibold text-green-600">
-            {recipe.match_percentage?.toFixed(1) || 0}%
-          </span>
+          <span className="text-gray-600">Kecocokan Bahan</span>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-green-600">
+              {recipe.match_percentage?.toFixed(1) || 0}%
+            </span>
+            {recipe.main_matched > 0 && (
+              <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">
+                ⭐ Bahan Utama Match
+              </span>
+            )}
+          </div>
         </div>
+
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
             className="bg-green-500 h-2 rounded-full transition-all"
@@ -39,15 +47,23 @@ export function RecipeCard({ recipe }) {
             }}
           ></div>
         </div>
+
+        <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+          <span>✅ {recipe.matched_count} tersedia</span>
+          <span>
+            ➕ {recipe.missing_count || recipe.missing_ingredients?.length || 0}{" "}
+            perlu ditambah
+          </span>
+        </div>
       </div>
 
       {/* Matched Ingredients */}
       {recipe.matched_ingredients && recipe.matched_ingredients.length > 0 && (
         <div className="mb-3">
           <p className="text-sm font-medium text-gray-700 mb-2">
-            ✅ Bahan yang bisa ditambahkan:
+            ✅ Bahan yang Kamu Punya ({recipe.matched_ingredients.length}):
           </p>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
             {recipe.matched_ingredients.map((ing, idx) => (
               <span
                 key={idx}
@@ -60,33 +76,68 @@ export function RecipeCard({ recipe }) {
         </div>
       )}
 
-      {/* Bahan-bahan Section */}
+      {/* Missing Ingredients - UPDATED TEXT */}
+      {recipe.missing_ingredients && recipe.missing_ingredients.length > 0 && (
+        <div className="mb-3">
+          <p className="text-sm font-medium text-gray-700 mb-2">
+            🛒 Belanja Dulu ({recipe.missing_ingredients.length} bahan):
+          </p>
+          <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+            {recipe.missing_ingredients.slice(0, 6).map((ing, idx) => (
+              <span
+                key={idx}
+                className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs"
+              >
+                {ing}
+              </span>
+            ))}
+            {recipe.missing_ingredients.length > 6 && (
+              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                +{recipe.missing_ingredients.length - 6}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Semua Bahan Section */}
       <div className="border-t pt-3 mb-2">
         <button
           onClick={() => setShowIngredients(!showIngredients)}
           className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 hover:text-gray-900"
         >
-          <span>🧾 Bahan-bahan ({recipe.total_ingredients || 0})</span>
+          <span>🧾 Semua Bahan ({recipe.total_ingredients || 0})</span>
           <span className="text-gray-400">{showIngredients ? "▼" : "▶"}</span>
         </button>
         {showIngredients && recipe.all_ingredients && (
           <div className="mt-3 space-y-1.5 max-h-64 overflow-y-auto bg-gray-50 p-3 rounded-lg">
-            {recipe.all_ingredients.map((ing, idx) => (
-              <div
-                key={idx}
-                className="flex items-start gap-2 text-sm text-gray-700 hover:bg-white p-1.5 rounded transition"
-              >
-                <span className="text-green-600 flex-shrink-0 mt-0.5 font-bold">
-                  •
-                </span>
-                <span className="flex-1">{ing}</span>
-              </div>
-            ))}
+            {recipe.all_ingredients.map((ing, idx) => {
+              const isMatched = recipe.matched_ingredients?.includes(ing);
+              return (
+                <div
+                  key={idx}
+                  className={`flex items-start gap-2 text-sm p-1.5 rounded transition ${
+                    isMatched
+                      ? "bg-green-50 text-green-800"
+                      : "text-gray-700 hover:bg-white"
+                  }`}
+                >
+                  <span
+                    className={`flex-shrink-0 mt-0.5 font-bold ${
+                      isMatched ? "text-green-600" : "text-orange-500"
+                    }`}
+                  >
+                    {isMatched ? "✓" : "○"}
+                  </span>
+                  <span className="flex-1">{ing}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Langkah Memasak Section */}
+      {/* Langkah Memasak */}
       <div className="border-t pt-3 mb-2">
         <button
           onClick={() => setShowSteps(!showSteps)}
@@ -114,7 +165,7 @@ export function RecipeCard({ recipe }) {
         )}
       </div>
 
-      {/* View Full Recipe Link */}
+      {/* View Full Recipe */}
       {recipe.url && (
         <a
           href={recipe.url}
