@@ -101,8 +101,9 @@ export function NutritionInfo({ nutritionData }) {
 
       {/* Footer Note */}
       <p className="text-xs text-gray-500 mt-4 text-center">
-        * Nilai merupakan perkiraan dan berdasarkan porsi 100g. Total
-        diasumsikan 100g untuk setiap bahan.
+        * Nilai nutrisi merupakan perkiraan berdasarkan database standar per
+        100g bahan mentah. Nilai aktual dapat bervariasi tergantung cara
+        pengolahan dan porsi yang dikonsumsi.
       </p>
     </div>
   );

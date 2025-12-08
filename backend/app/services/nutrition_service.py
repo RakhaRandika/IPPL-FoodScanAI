@@ -56,10 +56,15 @@ _NUTRITION_DB = {
     "gula": {"calories_kcal": 387, "protein_g": 0.0, "fat_g": 0.0, "carbs_g": 100.0},
     "paprika": {"calories_kcal": 31, "protein_g": 1.0, "fat_g": 0.3, "carbs_g": 6.0},
     "jamur": {"calories_kcal": 22, "protein_g": 3.1, "fat_g": 0.3, "carbs_g": 3.3},
+    "sawi": {"calories_kcal": 13, "protein_g": 1.5, "fat_g": 0.2, "carbs_g": 2.2},
+    "labu_air": {"calories_kcal": 14, "protein_g": 0.6, "fat_g": 0.1, "carbs_g": 3.4},
+    "kacang_panjang": {"calories_kcal": 31, "protein_g": 1.8, "fat_g": 0.1, "carbs_g": 7.0},
 }
 
 # Mapping from YOLO detection labels (English) to nutrition DB keys (Indonesian)
+# Semua 25 kelas YOLO Model harus ada mapping-nya!
 _YOLO_TO_NUTRITION_MAP = {
+    # Protein (8 classes)
     "Beef": "daging_sapi",
     "Chicken": "ayam",
     "Pork": "daging_babi",
@@ -67,10 +72,9 @@ _YOLO_TO_NUTRITION_MAP = {
     "Galunggong": "ikan_galunggong",
     "Milkfish": "ikan_bandeng",
     "Tilapia": "ikan_nila",
+    
+    # Vegetables (14 classes)
     "Tomato": "tomat",
-    "Onion": "bawang_bombai",
-    "Garlic": "bawang_putih",
-    "Ginger": "jahe",
     "Potato": "kentang",
     "Carrots": "wortel",
     "Cabbage": "kubis",
@@ -80,11 +84,46 @@ _YOLO_TO_NUTRITION_MAP = {
     "Cauliflower": "kembang_kol",
     "BitterGourd": "pare",
     "BottleGourd": "labu_siam",
+    "Sayote": "labu_siam",
     "Pechay": "pechay",
     "WaterSpinach": "kangkung",
     "StringBeans": "buncis",
-    "Sayote": "sayote",
-    "Papaya": "pepaya"
+    
+    # Spices (3 classes)
+    "Onion": "bawang_bombai",
+    "Garlic": "bawang_putih",
+    "Ginger": "jahe",
+    
+    # Fruits (1 class)
+    "Papaya": "pepaya",
+    
+    # Case-insensitive aliases (Indonesian labels)
+    "ayam": "ayam",
+    "daging sapi": "daging_sapi",
+    "daging babi": "daging_babi",
+    "telur": "telur",
+    "ikan galunggong": "ikan_galunggong",
+    "ikan bandeng": "ikan_bandeng",
+    "ikan nila": "ikan_nila",
+    "tomat": "tomat",
+    "kentang": "kentang",
+    "wortel": "wortel",
+    "kubis": "kubis",
+    "terong": "terong",
+    "labu": "labu",
+    "brokoli": "brokoli",
+    "kembang kol": "kembang_kol",
+    "pare": "pare",
+    "labu siam": "labu_siam",
+    "labu air": "labu_siam",
+    "sawi": "pechay",
+    "kangkung": "kangkung",
+    "buncis": "buncis",
+    "bawang merah": "bawang_bombai",
+    "bawang bombai": "bawang_bombai",
+    "bawang putih": "bawang_putih",
+    "jahe": "jahe",
+    "pepaya": "pepaya"
 }
 
 
@@ -108,13 +147,23 @@ def get_nutrition_from_yolo_label(yolo_label: str) -> Optional[Dict]:
     if not yolo_label:
         return None
     
-    # First try direct mapping
+    # Try exact match first (case-sensitive for English labels)
     nutrition_key = _YOLO_TO_NUTRITION_MAP.get(yolo_label)
     if nutrition_key:
-        return _NUTRITION_DB.get(nutrition_key)
+        result = _NUTRITION_DB.get(nutrition_key)
+        if result:
+            return result
     
-    # Fallback: try as-is (lowercase)
-    return get_nutrition(yolo_label)
+    # Try case-insensitive match (for Indonesian labels)
+    label_lower = yolo_label.lower().strip()
+    nutrition_key = _YOLO_TO_NUTRITION_MAP.get(label_lower)
+    if nutrition_key:
+        result = _NUTRITION_DB.get(nutrition_key)
+        if result:
+            return result
+    
+    # Fallback: direct lookup in nutrition DB
+    return _NUTRITION_DB.get(label_lower)
 
 
 def get_nutrition_for_ingredients(ingredients: list) -> Dict:

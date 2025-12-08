@@ -49,7 +49,10 @@ export function MainView() {
       alert(
         "Gagal melakukan scan: " +
           error.message +
-          "\n\nPastikan backend server sudah running di http://127.0.0.1:8000"
+          "\n\nPastikan bahan yang dideteksi ada dalam dataset kami:\n" +
+          "Daging Sapi, Pare, Labu air, Brokoli, Kubis, Wortel, Kembang Kol, Ayam, " +
+          "Telur, Terong, Galunggong, Bawang Putih, Jahe, Bandeng, Bawang Bombay, Pepaya, " +
+          "Pechay, Babi, Kentang, Labu Kuning, Sayote, Buncis, Nila, Tomat, kangkung"
       );
     }
   };

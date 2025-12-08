@@ -109,22 +109,38 @@ app.add_middleware(
 )
 
 # Import routes
-try:
-    from app.routes import scan, recipe, nutrition
-    app.include_router(scan.router)
-    app.include_router(recipe.router)
-    app.include_router(nutrition.router)
-except ImportError as e:
-    print(f"Import error: {e}")
-    # Jika dijalankan langsung dengan python app/main.py
+from app.routes import scan, recipe, nutrition
+app.include_router(scan.router)
+app.include_router(recipe.router)
+app.include_router(nutrition.router)
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Docker"""
+    from app.database.db import SessionLocal
+    from app.database.models import Recipe
+    
     try:
-        from routes import scan, recipe, nutrition
-        app.include_router(scan.router)
-        app.include_router(recipe.router)
-        app.include_router(nutrition.router)
-    except ImportError as e2:
-        print(f"Second import error: {e2}")
-        raise
+        # Check database connection
+        session = SessionLocal()
+        recipe_count = session.query(Recipe).count()
+        session.close()
+        
+        # Check model
+        model = get_model()
+        
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "recipes": recipe_count,
+            "model": "loaded",
+            "classes": len(model.names)
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e)
+        }
 
 @app.get("/")
 async def root():
@@ -363,15 +379,20 @@ async def camera_capture_and_scan(confidence: float = 0.15):
         unique_labels = list(set(detected_labels))
         print(f"🔍 DEBUG: Detected ingredients: {unique_labels}")
         
-        # Get recipe recommendations
         recommended_recipes = []
         try:
             from app.services.recipe_service import recipe_service
             print(f"📚 DEBUG: Searching recipes for: {unique_labels}")
-            recommended_recipes = recipe_service.search_recipes(unique_labels, max_results=5)
+            recommended_recipes = recipe_service.search_recipes(
+                unique_labels, 
+                min_match=1, 
+                max_results=100  
+            )
             print(f"✅ DEBUG: Found {len(recommended_recipes)} recipes")
             if len(recommended_recipes) > 0:
-                print(f"   Top recipe: {recommended_recipes[0].get('name', 'N/A')}")
+                print(f"   Top 3 recipes:")
+                for i, recipe in enumerate(recommended_recipes[:3], 1):
+                    print(f"   {i}. {recipe.get('name', 'N/A')} - Match: {recipe.get('match_percentage', 0)}%")
         except Exception as recipe_error:
             print(f"❌ Recipe recommendation error: {recipe_error}")
             import traceback
@@ -398,7 +419,8 @@ async def camera_capture_and_scan(confidence: float = 0.15):
             "count": len(predictions),
             "detected_ingredients": unique_labels,
             "recommended_recipes": recommended_recipes,
-            "nutrition_info": nutrition_info
+            "nutrition_info": nutrition_info,
+            "total_recipes_found": len(recommended_recipes)  # ⚠️ TAMBAHKAN INI
         }
         
         print(f"📦 DEBUG: Returning {len(recommended_recipes)} recipes and nutrition: {nutrition_info is not None}")
@@ -406,6 +428,9 @@ async def camera_capture_and_scan(confidence: float = 0.15):
     
     except Exception as e:
         camera_manager.release_camera()
+        print(f"❌ ERROR in camera_capture_and_scan: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return {
             "success": False,
             "message": f"Error: {str(e)}",
@@ -415,7 +440,6 @@ async def camera_capture_and_scan(confidence: float = 0.15):
             "recommended_recipes": [],
             "nutrition_info": None
         }
-
 
 # Run dengan uvicorn (recommended)
 if __name__ == "__main__":

@@ -34,8 +34,15 @@ export function useFoodScanner() {
             : Math.floor(50 + Math.random() * 30);
         }
 
+        // Get unique ingredients for food name
+        const uniqueIngredients = result.detected_ingredients?.length > 0
+          ? [...new Set(result.detected_ingredients)]
+          : result.predictions.map(p => p.label);
+
         const data = {
-          foodName: topPrediction.label || "Makanan Terdeteksi",
+          foodName: uniqueIngredients.slice(0, 3).join(", ") || 
+                    topPrediction.label || 
+                    "Makanan Terdeteksi",
           confidence: topPrediction.confidence,
           calories: result.nutrition_info?.total?.calories || null,
           healthScore: healthScore,
@@ -47,6 +54,7 @@ export function useFoodScanner() {
             },
           ],
           allPredictions: result.predictions,
+          detected_ingredients: uniqueIngredients,
           // NEW: Add nutrition and recipe data
           nutrition_info: result.nutrition_info || null,
           recommended_recipes: result.recommended_recipes || [],

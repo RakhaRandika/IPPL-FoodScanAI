@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: foodscan-postgres
+    environment:
+      POSTGRES_USER: foodscan_user
+      POSTGRES_PASSWORD: foodscan_password
+      POSTGRES_DB: foodscan_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U foodscan_user -d foodscan_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - foodscan-network
+
+  # Backend FastAPI
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: foodscan-backend
+    environment:
+      - DATABASE_URL=postgresql://foodscan_user:foodscan_password@postgres:5432/foodscan_db
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./backend/app/models/models_yolo:/app/app/models/models_yolo
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - foodscan-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend React
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: foodscan-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - foodscan-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  foodscan-network:
+    driver: bridge
