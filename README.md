@@ -11,8 +11,6 @@ Sistem deteksi makanan berbasis YOLOv8 dengan rekomendasi resep dan informasi nu
 - ✅ **Deteksi Real-time** via camera atau upload
 - ✅ **Dual Language** (English + Indonesian)
 
----
-
 ## 🚀 Quick Start
 
 ### Option 1: Docker (Recommended) 🐳
