@@ -7,11 +7,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (ganti npm ci dengan npm install)
+RUN npm install --production --legacy-peer-deps
 
 # Copy source code
 COPY . .
+
+# Set memory limit untuk build
+ENV NODE_OPTIONS=--max-old-space-size=4096
 
 # Build React app
 RUN npm run build
