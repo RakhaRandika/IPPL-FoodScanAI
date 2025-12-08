@@ -1,7 +1,13 @@
-# Backend Dockerfile for FoodScanAI
-FROM python:3.11-slim
+# =============================================================================
+# Multi-stage Dockerfile for FoodScanAI
+# Build targets: backend, frontend
+# =============================================================================
 
-# Set working directory
+# -----------------------------------------------------------------------------
+# Backend Target
+# -----------------------------------------------------------------------------
+FROM python:3.11-slim AS backend
+
 WORKDIR /app
 
 # Install system dependencies
@@ -17,20 +23,33 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
-COPY requirements.txt .
+COPY backend/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY backend/ .
 
 # Expose port
 EXPOSE 8000
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
-
 # Run application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# -----------------------------------------------------------------------------
+# Frontend Target (Pre-built)
+# -----------------------------------------------------------------------------
+FROM nginx:alpine AS frontend
+
+# Copy pre-built files
+COPY frontend/build /usr/share/nginx/html
+
+# Copy nginx config
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

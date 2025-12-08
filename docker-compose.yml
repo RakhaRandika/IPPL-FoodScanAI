@@ -24,8 +24,9 @@ services:
   # Backend FastAPI
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
+      target: backend
     container_name: foodscan-backend
     environment:
       - DATABASE_URL=postgresql://foodscan_user:foodscan_password@postgres:5432/foodscan_db
@@ -40,14 +41,14 @@ services:
         condition: service_healthy
     networks:
       - foodscan-network
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     restart: unless-stopped
 
   # Frontend React (Pre-built)
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.simple
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
     container_name: foodscan-frontend
     expose:
       - "80"
