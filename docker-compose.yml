@@ -10,9 +10,9 @@ services:
       POSTGRES_PASSWORD: foodscan_password
       POSTGRES_DB: foodscan_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/datas
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U foodscan_user -d foodscan_db"]
@@ -32,7 +32,7 @@ services:
       - DATABASE_URL=postgresql://foodscan_user:foodscan_password@postgres:5432/foodscan_db
       - PYTHONUNBUFFERED=1
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - ./backend:/app
       - ./backend/app/models/models_yolo:/app/app/models/models_yolo
@@ -50,7 +50,7 @@ services:
       dockerfile: Dockerfile
     container_name: foodscan-frontend
     ports:
-      - "3000:80"
+      - "3001:80"
     depends_on:
       - backend
     networks:
