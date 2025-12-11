@@ -48,7 +48,6 @@ export function MainView() {
     } catch (error) {
       alert(
         "Gagal melakukan scan: " +
-          error.message +
           "\n\nPastikan bahan yang dideteksi ada dalam dataset kami:\n" +
           "Daging Sapi, Pare, Labu air, Brokoli, Kubis, Wortel, Kembang Kol, Ayam, " +
           "Telur, Terong, Galunggong, Bawang Putih, Jahe, Bandeng, Bawang Bombay, Pepaya, " +

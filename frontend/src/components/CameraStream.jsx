@@ -90,11 +90,7 @@ export function CameraStream({ onCapture, scanImage }) {
             src={streamUrl}
             alt="Camera Stream"
             className="w-full h-auto"
-            onError={() =>
-              setError(
-                "Kesalahan: Gagal memuat aliran kamera. Pastikan backend berjalan."
-              )
-            }
+            onError={() => setError("Gagal memuat aliran kamera.")}
           />
 
           {/* Capture Button Overlay */}
