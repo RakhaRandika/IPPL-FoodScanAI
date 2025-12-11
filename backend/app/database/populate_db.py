@@ -1,35 +1,37 @@
 # merge_all_datasets.py - Buat di folder backend
+import sys
+sys.path.insert(0, '/app')
+
 import pandas as pd
 from pathlib import Path
-from app.database import SessionLocal, init_db, Recipe
+from app.database.db import SessionLocal, init_db
+from app.database.models import Recipe
 
 def merge_all_datasets():
-    """Merge semua CSV dataset ke database"""
+    """Merge all CSV datasets to database"""
     
-    data_folder = Path(__file__).parent / "app" / "data"
+    # Fixed path - data is in /app/app/data/
+    data_folder = Path("/app/app/data")
     
-    # Daftar file CSV yang akan digabung
     csv_files = [
-        "resep_dataset.csv",      # Dataset utama (14,945 resep)
-        "resep_dataset2.csv",     # Dataset tambahan baru
-        "dataset-sapi.csv",       # D
-        "dataset-ikan.csv",       
-        "dataset-ayam.csv"        
+        "resep_dataset.csv",
+        "resep_dataset2.csv",
+        "dataset-sapi.csv",
+        "dataset-ikan.csv",
+        "dataset-ayam.csv"
     ]
     
-    # List untuk menampung semua dataframe
     all_dataframes = []
     
     print("="*60)
     print("🔄 MERGING ALL RECIPE DATASETS")
     print("="*60)
     
-    # Baca semua CSV
     for csv_file in csv_files:
         csv_path = data_folder / csv_file
         
         if not csv_path.exists():
-            print(f"⚠️  File tidak ditemukan: {csv_file}")
+            print(f"⚠️  File not found: {csv_file}")
             continue
         
         try:
@@ -40,29 +42,27 @@ def merge_all_datasets():
             print(f"❌ Error reading {csv_file}: {e}")
     
     if not all_dataframes:
-        print("❌ Tidak ada dataset yang berhasil dibaca!")
+        print("❌ No CSV files loaded!")
         return
     
-    # Gabungkan semua dataframe
-    print(f"\n📊 Menggabungkan {len(all_dataframes)} dataset...")
+    print(f"\n📊 Merging {len(all_dataframes)} datasets...")
     merged_df = pd.concat(all_dataframes, ignore_index=True)
     
-    # Hapus duplikat berdasarkan Title dan URL
-    print(f"🔍 Total recipes sebelum de-duplicate: {len(merged_df):,}")
-    merged_df = merged_df.drop_duplicates(subset=['Title', 'URL'], keep='first')
-    print(f"✨ Total recipes setelah de-duplicate: {len(merged_df):,}")
+    print(f"🔍 Total recipes before de-duplicate: {len(merged_df):,}")
+    merged_df = merged_df.drop_duplicates(subset=['Title'], keep='first')
+    print(f"✨ Total recipes after de-duplicate: {len(merged_df):,}")
     
-    # Inisialisasi database
     print(f"\n🔄 Initializing database...")
     init_db()
     
     session = SessionLocal()
     
     try:
-        print(f"💾 Populating database dengan {len(merged_df):,} recipes...")
+        print(f"💾 Populating database with {len(merged_df):,} recipes...")
         success_count = 0
-        error_count = 0
         
+        # Bulk insert for better performance
+        recipes_to_add = []
         for idx, row in merged_df.iterrows():
             try:
                 recipe = Recipe(
@@ -74,38 +74,30 @@ def merge_all_datasets():
                     url=str(row.get("URL", "") or ""),
                     loves=int(row.get("Loves", 0) or 0)
                 )
-                session.merge(recipe)  # Insert or update
+                recipes_to_add.append(recipe)
                 success_count += 1
                 
-                # Commit setiap 1000 recipes
-                if idx % 1000 == 0:
-                    print(f"   Progress: {idx:,}/{len(merged_df):,} ({(idx/len(merged_df)*100):.1f}%)")
+                if len(recipes_to_add) >= 1000:
+                    session.bulk_save_objects(recipes_to_add)
                     session.commit()
+                    print(f"   Progress: {success_count:,}/{len(merged_df):,} ({(success_count/len(merged_df)*100):.1f}%)")
+                    recipes_to_add = []
                     
             except Exception as e:
-                error_count += 1
-                print(f"   ⚠️  Error pada index {idx}: {e}")
+                print(f"   ⚠️  Error at index {idx}: {e}")
         
-        # Commit sisa
-        session.commit()
+        # Save remaining
+        if recipes_to_add:
+            session.bulk_save_objects(recipes_to_add)
+            session.commit()
         
         print("\n" + "="*60)
-        print(f"✅ SELESAI!")
-        print(f"   Total berhasil: {success_count:,} recipes")
-        print(f"   Total error: {error_count}")
+        print(f"✅ COMPLETED!")
+        print(f"   Total inserted: {success_count:,} recipes")
         print("="*60)
         
-        # Verifikasi database
         total_in_db = session.query(Recipe).count()
-        print(f"\n📊 Total recipes di database: {total_in_db:,}")
-        
-        # Show sample
-        print(f"\n📝 Sample resep dari masing-masing kategori:")
-        categories = session.query(Recipe.category).distinct().limit(10).all()
-        for cat in categories:
-            count = session.query(Recipe).filter(Recipe.category == cat[0]).count()
-            sample = session.query(Recipe).filter(Recipe.category == cat[0]).first()
-            print(f"   - {cat[0]}: {count} resep (contoh: {sample.title})")
+        print(f"\n📊 Total recipes in database: {total_in_db:,}")
         
     except Exception as e:
         print(f"\n❌ Fatal Error: {e}")
