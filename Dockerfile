@@ -38,12 +38,34 @@ EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # -----------------------------------------------------------------------------
-# Frontend Target (Pre-built)
+# Frontend Target - BUILD REACT DI SINI
+# -----------------------------------------------------------------------------
+FROM node:18-alpine AS frontend-build
+
+WORKDIR /app
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm install --legacy-peer-deps
+
+# Copy source code
+COPY frontend/ .
+
+# Set memory limit
+ENV NODE_OPTIONS=--max-old-space-size=4096
+
+# Build React app
+RUN npm run build
+
+# -----------------------------------------------------------------------------
+# Frontend Target - Serve with Nginx
 # -----------------------------------------------------------------------------
 FROM nginx:alpine AS frontend
 
-# Copy pre-built files
-COPY frontend/build /usr/share/nginx/html
+# Copy built files from build stage
+COPY --from=frontend-build /app/build /usr/share/nginx/html
 
 # Copy nginx config
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
