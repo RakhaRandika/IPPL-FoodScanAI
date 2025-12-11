@@ -149,7 +149,7 @@ async def scan_food(
                     
                     predictions.append({
                         "label": translate_food_label(label),
-                        "label_en": label,  # Simpan label bahasa Inggris untuk recipe search
+                        "label_en": label,  
                         "confidence": round(confidence_score * 100, 2),  # Convert ke persen
                         "bounding_box": {
                             "x1": round(bbox[0], 2),
