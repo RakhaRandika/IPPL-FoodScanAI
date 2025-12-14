@@ -172,7 +172,7 @@ export function MainView() {
                   <div className="text-blue-800">
                     <p className="font-medium">Scanning makanan...</p>
                     <p className="text-sm text-blue-600">
-                      Menggunakan AI untuk mendeteksi makanan dalam gambar
+                      Loading, ini mungkin memakan waktu beberapa detik
                     </p>
                   </div>
                 </div>
