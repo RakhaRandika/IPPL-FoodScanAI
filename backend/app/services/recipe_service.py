@@ -205,25 +205,39 @@ class RecipeService:
             category = str(row.get('Category', '')).lower()
             title = str(row.get('Title', '')).lower()
             
-            # SKIP kategori bumbu/instant untuk SEMUA protein mentah
-            skip_categories = ['bumbu', 'seasoning', 'instant', 'ready to eat', 'frozen', 'bumbu racik']
+            # SKIP kategori bumbu/instant/olahan untuk SEMUA protein mentah
+            skip_categories = ['bumbu', 'seasoning', 'instant', 'ready to eat', 'frozen', 'bumbu racik', 'kaldu']
             if any(cat in category for cat in skip_categories):
                 continue
             
-            # Filter spesifik per protein
+            # SKIP title yang mengandung kata kunci produk olahan/instant
+            skip_title_keywords = [
+                'bumbu racik', 'kaldu bubuk', 'kaldu instant', 'royco', 'royko', 'masako',
+                'penyedap rasa', 'saos', 'saus instant', 'tepung bumbu', 'seasoning',
+                'abon', 'suwir', 'kornet', 'dendeng', 'nugget', 'sosis', 'bakso instant',
+                'frozen food', 'siap saji', 'tepung crispy', 'ikan kaleng', 'sarden',
+                'ikan asin', 'terasi', 'petis', 'ebi kering'
+            ]
+            if any(keyword in title for keyword in skip_title_keywords):
+                continue
+            
+            # Filter spesifik per protein - HANYA masakan ayam utuh, BUKAN olahan
             if user_has_chicken:
-                # SKIP produk olahan ayam
-                if any(word in title for word in ['royco', 'royko', 'masako', 'bumbu racik', 'kaldu bubuk', 'kaldu ayam instant']):
+                # SKIP jika title/category menunjukkan ini bukan masakan ayam utama
+                if any(word in title for word in ['bumbu', 'kaldu', 'royco', 'masako', 'tepung']):
+                    continue
+                # SKIP jika ini produk olahan ayam
+                if any(word in title for word in ['nugget ayam', 'sosis ayam', 'bakso ayam', 'abon ayam']):
                     continue
             
             if user_has_beef:
                 # SKIP produk olahan sapi
-                if any(word in title for word in ['kornet', 'dendeng', 'abon sapi', 'bakso sapi instant', 'kaldu sapi bubuk']):
+                if any(word in title for word in ['kornet', 'dendeng', 'abon sapi', 'bakso instant']):
                     continue
             
             if user_has_fish:
                 # SKIP produk olahan ikan
-                if any(word in title for word in ['ikan kaleng', 'sarden', 'ikan asin', 'terasi', 'petis', 'kaldu ikan bubuk']):
+                if any(word in title for word in ['ikan kaleng', 'sarden', 'ikan asin kering']):
                     continue
             
             recipe_ingredients = self.parse_ingredients_detailed(str(row.get('Ingredients', '')))
@@ -245,15 +259,15 @@ class RecipeService:
 
                         # FILTER KETAT: Anti salah deteksi protein mentah vs produk olahan
                         
-                        # Filter AYAM (tapi JANGAN filter telur jika user punya telur!)
+                        # Filter AYAM - Hanya masakan ayam UTUH, bukan olahan/bumbu
                         if user_has_chicken and kw == "ayam":
                             skip_ingredients = [
-                                "kaldu ayam", "kaldu", 
-                                "bumbu ayam", "bumbu", "royco", "royko", "masako",
-                                "penyedap rasa ayam", "penyedap", "tepung bumbu ayam",
-                                "saos ayam", "kecap ayam", "abon ayam", "suwir ayam",
-                                "nugget", "sosis", "bakso ayam", "tepung crispy",
-                                "ayam goreng siap saji", "ayam frozen"
+                                "kaldu ayam", "kaldu instant", "bubuk kaldu",
+                                "bumbu ayam", "bumbu instant", "royco", "royko", "masako",
+                                "penyedap rasa ayam", "penyedap", "tepung bumbu ayam", "tepung crispy",
+                                "saos ayam", "kecap ayam", "abon ayam", "suwir ayam", "ayam suwir",
+                                "nugget", "sosis", "bakso ayam instant", "bakso ayam frozen",
+                                "ayam goreng siap saji", "ayam frozen", "ayam fillet beku"
                             ]
                             
                             # CRITICAL: Jika ingredient ini telur, SKIP hanya jika user TIDAK punya telur
@@ -262,24 +276,25 @@ class RecipeService:
                                     continue  # Skip telur ayam
                                 # else: User punya telur DAN ayam, allow telur
                             elif any(skip in rec_clean for skip in skip_ingredients):
-                                continue
+                                continue  # Skip produk olahan ayam
                         
-                        # Filter SAPI
+                        # Filter SAPI - Hanya masakan daging sapi segar
                         if user_has_beef and ("sapi" in kw or "beef" in kw):
                             skip_ingredients = [
-                                "kaldu sapi", "kaldu", "bumbu rendang instant",
-                                "kornet", "kornet sapi", "dendeng", "abon sapi",
-                                "bakso sapi", "sosis sapi", "daging kaleng"
+                                "kaldu sapi", "kaldu instant", "bubuk kaldu sapi",
+                                "bumbu rendang instant", "bumbu sapi instant",
+                                "kornet", "kornet sapi", "dendeng", "dendeng sapi", "abon sapi",
+                                "bakso sapi instant", "sosis sapi", "daging kaleng", "daging kornet"
                             ]
                             if any(skip in rec_clean for skip in skip_ingredients):
                                 continue
                         
-                        # Filter IKAN
+                        # Filter IKAN - Hanya masakan ikan segar
                         if user_has_fish and "ikan" in kw:
                             skip_ingredients = [
-                                "ikan kaleng", "sarden", "ikan asin", "ikan teri",
-                                "terasi", "petis", "ebi", "kaldu ikan bubuk",
-                                "nugget ikan", "bakso ikan", "otak-otak"
+                                "ikan kaleng", "sarden", "ikan asin", "ikan teri asin", "ikan kering",
+                                "terasi", "petis", "ebi", "kaldu ikan bubuk", "kaldu ikan instant",
+                                "nugget ikan", "bakso ikan instant", "otak-otak frozen", "pempek frozen"
                             ]
                             if any(skip in rec_clean for skip in skip_ingredients):
                                 continue

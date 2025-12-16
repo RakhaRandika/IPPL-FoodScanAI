@@ -28,27 +28,34 @@ def get_model():
 def translate_food_label(english_label: str) -> str:
     """Translate English food labels to Indonesian"""
     translations = {
-        'potato': 'Kentang',
+        # Protein
         'beef': 'Daging Sapi',
         'chicken': 'Ayam',
         'pork': 'Daging Babi',
         'egg': 'Telur',
-        'eggplant': 'Terong',
+        
+        # Ikan
         'galunggong': 'Ikan Galunggong',
         'milkfish': 'Ikan Bandeng',
         'tilapia': 'Ikan Nila',
+        
+        # Sayuran
+        'potato': 'Kentang',
+        'eggplant': 'Terong',
         'tomato': 'Tomat',
         'carrots': 'Wortel',
         'cabbage': 'Kubis',
         'broccoli': 'Brokoli',
         'cauliflower': 'Kembang Kol',
-        'pumpkin': 'Labu',
+        'pumpkin': 'Labu Kuning',
         'bittergourd': 'Pare',
         'bottlegourd': 'Labu Air',
         'sayote': 'Labu Siam',
-        'pechay': 'Sawi',
+        'pechay': 'Sawi Putih',
         'waterspinach': 'Kangkung',
         'stringbeans': 'Buncis',
+        
+        # Buah & Bumbu
         'papaya': 'Pepaya',
         'onion': 'Bawang Merah',
         'garlic': 'Bawang Putih',
