@@ -196,20 +196,17 @@ export function MainView() {
                     <Upload className="size-4 mr-2" />
                     Upload Gambar
                   </Button>
-                  {/* Camera feature - disabled in production (no webcam on server) */}
-                  {process.env.NODE_ENV === "development" && (
-                    <Button
-                      onClick={() => setScanMode("camera")}
-                      className={`${
-                        scanMode === "camera"
-                          ? "bg-gradient-to-r from-blue-600 to-blue-500"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      }`}
-                    >
-                      <Camera className="size-4 mr-2" />
-                      Live Camera
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => setScanMode("camera")}
+                    className={`${
+                      scanMode === "camera"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-500"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    <Camera className="size-4 mr-2" />
+                    Live Camera
+                  </Button>
                 </div>
               </div>
 
