@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { scanImage as apiScanImage } from "../services/api";
+import { scanFood } from "../services/api";
 
 /**
  * Component untuk live camera detection menggunakan browser webcam
@@ -75,7 +75,7 @@ export function CameraStream({ onCapture }) {
             });
 
             // Scan image menggunakan API
-            const result = await apiScanImage(file, confidence);
+            const result = await scanFood(file, confidence);
 
             if (result && onCapture) {
               onCapture({
