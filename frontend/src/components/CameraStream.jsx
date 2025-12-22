@@ -9,6 +9,7 @@ export function CameraStream({ onCapture }) {
   const [confidence, setConfidence] = useState(0.5);
   const [isCapturing, setIsCapturing] = useState(false);
   const [error, setError] = useState(null);
+  const [facingMode, setFacingMode] = useState("environment"); // "user" = depan, "environment" = belakang
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -21,13 +22,17 @@ export function CameraStream({ onCapture }) {
       stopWebcam();
     }
     return () => stopWebcam();
-  }, [isActive]);
+  }, [isActive, facingMode]); // Restart camera when facingMode changes
 
   const startWebcam = async () => {
     try {
       setError(null);
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 1280, height: 720 },
+        video: {
+          width: 1280,
+          height: 720,
+          facingMode: facingMode, // "user" = front, "environment" = back
+        },
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -100,20 +105,41 @@ export function CameraStream({ onCapture }) {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-          📷 Deteksi Kamera Langsung
-        </h2>
-        <button
-          onClick={() => setIsActive(!isActive)}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            isActive
-              ? "bg-red-500 hover:bg-red-600 text-white"
-              : "bg-green-500 hover:bg-green-600 text-white"
-          }`}
-        >
-          {isActive ? "Stop Camera" : "Start Camera"}
-        </button>
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            Deteksi Kamera Langsung
+          </h2>
+          <button
+            onClick={() => setIsActive(!isActive)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              isActive
+                ? "bg-red-500 hover:bg-red-600 text-white"
+                : "bg-green-500 hover:bg-green-600 text-white"
+            }`}
+          >
+            {isActive ? "Stop Camera" : "Start Camera"}
+          </button>
+        </div>
+
+        {/* Camera Switch Toggle */}
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-gray-600">Kamera:</span>
+          <button
+            onClick={() =>
+              setFacingMode(facingMode === "user" ? "environment" : "user")
+            }
+            disabled={!isActive}
+            className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+              !isActive
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
+            }`}
+          >
+            {facingMode === "user" ? " Depan" : " Belakang"}
+          </button>
+          <span className="text-xs text-gray-500">(Klik untuk ganti)</span>
+        </div>
       </div>
 
       {/* Confidence Slider */}
@@ -180,7 +206,7 @@ export function CameraStream({ onCapture }) {
         </div>
       ) : (
         <div className="bg-gray-100 rounded-lg p-12 text-center">
-          <div className="text-6xl mb-4">📷</div>
+          <div className="text-6xl mb-4"></div>
           <p className="text-gray-600 font-medium">
             Klik "Start Camera" untuk memulai deteksi
           </p>
