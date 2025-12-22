@@ -52,14 +52,15 @@ class RecipeService:
     def normalize_ingredient(self, ingredient: str) -> tuple:
         """Normalize nama bahan makanan & mengembalikan tipe: protein/vegetable/spice"""
         ingredient_mapping = {
-            # PROTEIN - SPECIFIC CHICKEN PARTS ONLY
-            'beef': (['daging sapi', 'sapi'], 'protein'),
-            'daging sapi': (['daging sapi', 'sapi'], 'protein'),
-            'chicken': (['ayam utuh', 'daging ayam mentah', 'ayam potong', 'ayam segar', 'ayam kampung'], 'protein'),
-            'pork': (['daging babi', 'babi'], 'protein'),
-            'daging babi': (['daging babi', 'babi'], 'protein'),
-            'egg': (['telur ayam', 'telur bebek', 'telur'], 'protein'),
-            'telur': (['telur ayam', 'telur bebek', 'telur'], 'protein'),
+            # PROTEIN - Simplified untuk match lebih luas
+            'beef': (['daging sapi', 'sapi', 'beef'], 'protein'),
+            'daging sapi': (['daging sapi', 'sapi', 'beef'], 'protein'),
+            'chicken': (['ayam', 'chicken'], 'protein'),  # Simplified!
+            'ayam': (['ayam', 'chicken'], 'protein'),
+            'pork': (['daging babi', 'babi', 'pork'], 'protein'),
+            'daging babi': (['daging babi', 'babi', 'pork'], 'protein'),
+            'egg': (['telur', 'egg'], 'protein'),
+            'telur': (['telur', 'egg'], 'protein'),
             'galunggong': (['ikan galunggong', 'galunggong', 'ikan'], 'protein'),
             'ikan galunggong': (['ikan galunggong', 'galunggong', 'ikan'], 'protein'),
             'milkfish': (['ikan bandeng', 'bandeng', 'ikan'], 'protein'),
@@ -67,9 +68,9 @@ class RecipeService:
             'tilapia': (['ikan nila', 'nila', 'mujair', 'ikan'], 'protein'),
             'ikan nila': (['ikan nila', 'nila', 'mujair', 'ikan'], 'protein'),
 
-            # VEGETABLES
-            'eggplant': (['terong', 'terung'], 'vegetable'),
-            'terong': (['terong', 'terung'], 'vegetable'),
+            # VEGETABLES - Simplified
+            'eggplant': (['terong'], 'vegetable'),
+            'terong': (['terong'], 'vegetable'),
             'tomato': (['tomat'], 'vegetable'),
             'tomat': (['tomat'], 'vegetable'),
             'potato': (['kentang'], 'vegetable'),
@@ -82,26 +83,26 @@ class RecipeService:
             'brokoli': (['brokoli'], 'vegetable'),
             'cauliflower': (['kembang kol'], 'vegetable'),
             'kembang kol': (['kembang kol'], 'vegetable'),
-            'pumpkin': (['labu kuning', 'labu'], 'vegetable'),
-            'labu': (['labu kuning', 'labu'], 'vegetable'),
+            'pumpkin': (['labu'], 'vegetable'),
+            'labu': (['labu'], 'vegetable'),
             'bittergourd': (['pare'], 'vegetable'),
             'pare': (['pare'], 'vegetable'),
             'bottlegourd': (['labu air'], 'vegetable'),
             'labu air': (['labu air'], 'vegetable'),
             'sayote': (['labu siam'], 'vegetable'),
             'labu siam': (['labu siam'], 'vegetable'),
-            'pechay': (['sawi', 'caisim'], 'vegetable'),
-            'sawi': (['sawi', 'caisim'], 'vegetable'),
+            'pechay': (['sawi'], 'vegetable'),
+            'sawi': (['sawi'], 'vegetable'),
             'waterspinach': (['kangkung'], 'vegetable'),
             'kangkung': (['kangkung'], 'vegetable'),
-            'stringbeans': (['buncis', 'kacang panjang'], 'vegetable'),
-            'buncis': (['buncis', 'kacang panjang'], 'vegetable'),
+            'stringbeans': (['buncis'], 'vegetable'),
+            'buncis': (['buncis'], 'vegetable'),
             'papaya': (['pepaya'], 'vegetable'),
             'pepaya': (['pepaya'], 'vegetable'),
 
             # SPICES
-            'onion': (['bawang merah', 'bawang bombai'], 'spice'),
-            'bawang merah': (['bawang merah', 'bawang bombai'], 'spice'),
+            'onion': (['bawang merah', 'bawang'], 'spice'),
+            'bawang merah': (['bawang merah', 'bawang'], 'spice'),
             'garlic': (['bawang putih'], 'spice'),
             'bawang putih': (['bawang putih'], 'spice'),
             'ginger': (['jahe'], 'spice'),
@@ -109,6 +110,8 @@ class RecipeService:
         }
         
         ing = ingredient.lower().strip()
+        
+        # Special cases untuk ikan
         if 'bandeng' in ing:
             return (['ikan bandeng', 'bandeng', 'ikan'], 'protein')
         if 'galunggong' in ing:
@@ -137,6 +140,8 @@ class RecipeService:
         for key, (values, ing_type) in ingredient_mapping.items():
             if ing == key or key in ing:
                 return (values, ing_type)
+        
+        # Default: return as is
         return ([ing], 'vegetable')
     def _clean_text(self, text: str) -> str:
         text = re.sub(r'[0-9!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]', ' ', text)
